@@ -8,6 +8,8 @@ file:///C:/WinAVR-20100110/doc/avr-libc/avr-libc-user-manual/index.html
 
 // =============================================================
 
+#define F_CPU 16000000UL
+
 #define UART_USE_ENABLED
 #define WASSERWANNE_USED
 
