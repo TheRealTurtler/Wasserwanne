@@ -28,6 +28,7 @@ volatile WASSERWANNE_DATA gstWasserwanneData;
 // **************************
 ISR( PCINT2_vect )
 // **************************
+// no longer used
 {
 	gstWasserwanneData.u16Bounces++;
 	TOGGLE_WASSERWANNE_BUSY_LED_BIT();
@@ -102,6 +103,7 @@ ISR( TIMER2_COMPA_vect )
 static void InitOverrideActivateInterrupt( void )	// INT1
 // **************************
 {
+	// no longer used
 	return;
 }
 
@@ -109,6 +111,7 @@ static void InitOverrideActivateInterrupt( void )	// INT1
 static void InitOverrideInterrupt( void )			// INT2
 // **************************
 {
+	// no longer used
 	return;
 }
 
@@ -116,6 +119,7 @@ static void InitOverrideInterrupt( void )			// INT2
 static void InitSensorInterrupt( void )				// PCINT16
 // **************************
 {
+	// no longer used
 	PCICR |= _BV( PCIE2 );
 	PCMSK2 |= _BV( PCINT16 );
 }
@@ -174,6 +178,7 @@ void InitWasserwanne( void )
 void CheckWaterSensor( void )
 // **************************
 {
+	// Sensor-switch debouncing (according to Arduino sample project)
 	static uint32_t u32LastBounceTime = 0;
 	
 	uint8_t u8SensorState = SENSOR_PINX & SENSOR_BIT;
@@ -184,6 +189,7 @@ void CheckWaterSensor( void )
 		u32LastBounceTime = gstWasserwanneData.u32Ticks;
 	}
 	
+	// delay + signal time to ensure the previous signal has finished sending
 	if ( (gstWasserwanneData.u32Ticks - u32LastBounceTime) > (DEBOUNCE_DELAY_MS + VALVE_SIGNAL_TIME_MS) )
 	{
 		if(u8SensorState != gstWasserwanneData.u8CurrentSensorState)
