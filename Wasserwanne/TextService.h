@@ -3,8 +3,7 @@
 #ifndef TEXT_SERVICE_HEADER
 	#define  TEXT_SERVICE_HEADER
 
-//AUSSschalten wenn nicht benötigt 
-#define TEXT_SERVICE_ENABLED
+#include "Modules.h"
 
 #ifdef TEXT_SERVICE_ENABLED
 

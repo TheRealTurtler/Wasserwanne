@@ -9,6 +9,10 @@
 #ifndef WASSERWANNE_H_
 #define WASSERWANNE_H_
 
+#include "Modules.h"
+
+#ifdef WASSERWANNE_USED
+
 // ================ Includes ==============================
 
 //#include <ctype.h>
@@ -24,8 +28,6 @@
 #include "uart.h"
 #include "TextService.h"
 #endif
-
-#include "main.h"
 
 // ================ Definitionen ==========================
 
@@ -72,7 +74,8 @@
 #define CLEAR_WASSERWANNE_BUSY_LED_BIT()	(WASSERWANNE_BUSY_LED_PORTX &= ~ WASSERWANNE_BUSY_LED_BIT)
 #define TOGGLE_WASSERWANNE_BUSY_LED_BIT()	(WASSERWANNE_BUSY_LED_PORTX ^= WASSERWANNE_BUSY_LED_BIT)
 
-#define VALVE_SIGNAL_TIME_MS 30U
+#define VALVE_SIGNAL_TIME_MS 1000UL
+#define DEBOUNCE_DELAY_MS 50U
 
 // ================ Structs ===============================
 
@@ -82,13 +85,29 @@ typedef struct
 	unsigned char Active_F : 1;
 	unsigned char Valve_On_F : 1;
 	unsigned char Valve_Off_F : 1;
+	unsigned char Valve_State_F : 1;
 } WASSERWANNE_FLAGS;
 
+typedef struct
+{
+	uint32_t u32Ticks;
+	uint16_t u16ValveTicks;
+	
+	uint16_t u16Bounces;
+	uint16_t u16SensorSwitches;
+	
+	uint8_t u8CurrentSensorState;
+	uint8_t u8LastSensorState;
+} WASSERWANNE_DATA;
+
 extern volatile WASSERWANNE_FLAGS gstWasserwanneFlags;
+extern volatile WASSERWANNE_DATA gstWasserwanneData;
 
 // ================ Funktionen ============================
 
 void InitWasserwanne( void );
 void CheckWaterSensor( void );
+
+#endif
 
 #endif /* WASSERWANNE_H_ */

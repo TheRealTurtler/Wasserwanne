@@ -4,6 +4,8 @@
 #ifndef BEFEHLE_HEADER
 	#define  BEFEHLE_HEADER
 
+#include "Modules.h"
+
 #ifdef UART_USE_ENABLED	
 //#define ASC_DELIMITER	','
 //const char MCA_DELIMTERSTR[] PROGMEM = { ',',0 };

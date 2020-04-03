@@ -1,6 +1,9 @@
 /*
 Michael Diedler 15.03.2020
-MODIFIZIERT PGM_P Pointer bei uart_puts_p und uart1_puts_p
+MODIFIED PGM_P Pointer at uart_puts_p and uart1_puts_p
+
+Michael Diedler 04.04.2020
+ADDED #ifdef UART_USE_ENABLED to easily turn off compilation of this file
 */
 
 /*************************************************************************
@@ -66,6 +69,10 @@ were adapted from the Arduino HardwareSerial.h library by Tim Sharpe on
   
   Modified 23 November 2006 by David A. Mellis
 ************************************************************************/
+
+#include "Modules.h"
+
+#ifdef UART_USE_ENABLED
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -856,5 +863,7 @@ void uart1_flush(void)
 	UART1_RxHead = UART1_RxTail;
 }/* uart1_flush */
 
+
+#endif
 
 #endif

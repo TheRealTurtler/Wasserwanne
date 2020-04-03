@@ -6,6 +6,9 @@ Kurs
 // NUR wenn #define UART_USE_ENABLED gibt es weitere kleine Funktionen
 
 #include "main.h"
+
+#include "Modules.h"
+
 #ifdef UART_USE_ENABLED
 // *************
 void CRLF(void)

@@ -63,6 +63,8 @@ int main( void )
 	uart_init( UART_BAUD_SELECT_DOUBLE_SPEED( 115200UL, F_CPU ) );
 	//uart_init(UART_BAUD_SELECT( 9600UL, F_CPU) );
 	ResetRxBuff();
+	
+	gstFlags.Geschwaetzig = 1;
 #endif
 	
 	wdt_reset();
@@ -73,9 +75,8 @@ int main( void )
 	
 #ifdef WASSERWANNE_USED
 	InitWasserwanne();
+	CheckWaterSensor();
 #endif
-	
-	gstFlags.Geschwaetzig = 1;
 	
 	sei();  // Interrupt einschalten
 	
@@ -85,16 +86,15 @@ int main( void )
 		wdt_reset();
 		
 #ifdef WASSERWANNE_USED
-		//CheckWaterSensor();
+		CheckWaterSensor();
 #endif
 		
-		if (	gstFlags.TICK_100MS__Flag ) // Ask Flag == TRUE
-		{
-			gstFlags.TICK_100MS__Flag = 0;
-			
-			
-		};
-		
+// 		if ( gstFlags.TICK_100MS__Flag ) // Ask Flag == TRUE
+// 		{
+// 			gstFlags.TICK_100MS__Flag = 0;
+//
+// 		};
+
 		if ( gstFlags.TickEvent_Flag ) // ?-->1
 		{
 			gstFlags.TickEvent_Flag = 0; // clear Flag
@@ -104,7 +104,43 @@ int main( void )
 			{
 				uart_puts_p( PSTR( "Tick: " ) );
 				uart_puts( ULongToNumStr( gu32Ticks ) );
-				CRLF();	
+				CRLF();
+				
+#ifdef WASSERWANNE_USED
+				uart_puts_p( PSTR( "Status:" ) );
+				CRLF();
+				uart_puts_p( PSTR( "\tSensor: " ) );
+				uart_puts( UIntToNumStr( gstWasserwanneFlags.Start_F ) );
+				uart_puts( UIntToNumStr( gstWasserwanneFlags.Active_F ) );
+				uart_puts( UIntToNumStr( gstWasserwanneFlags.Valve_On_F ) );
+				uart_puts( UIntToNumStr( gstWasserwanneFlags.Valve_Off_F ) );
+				uart_puts( UIntToNumStr( gstWasserwanneFlags.Valve_State_F ) );
+				CRLF();
+				
+				uart_puts_p( PSTR( "\tValve: " ) );
+				
+				if ( gstWasserwanneFlags.Valve_State_F )
+				{
+					uart_puts_p( PSTR( "OPEN" ) );
+				}
+				else
+				{
+					uart_puts_p( PSTR( "CLOSED" ) );
+				}
+				
+				CRLF();
+				
+				uart_puts_p( PSTR( "\tBounces: " ) );
+				uart_puts( UIntToNumStr( gstWasserwanneData.u16Bounces ) );
+				CRLF();
+				uart_puts_p( PSTR( "\tSensor Switches: " ) );
+				uart_puts( UIntToNumStr( gstWasserwanneData.u16SensorSwitches ) );
+				CRLF();
+				uart_puts_p( PSTR( "\tWasserwanne Ticks: : " ) );
+				uart_puts( ULongToNumStr( gstWasserwanneData.u32Ticks ) );
+				CRLF();
+				CRLF();
+#endif
 			};
 #endif
 			

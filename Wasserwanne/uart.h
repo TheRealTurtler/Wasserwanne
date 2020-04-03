@@ -3,7 +3,10 @@
 
 /*
 Michael Diedler 15.03.2020
-MODIFIZIERT PGM_P Pointer bei uart_puts_p und uart1_puts_p
+MODIFIED PGM_P Pointer at uart_puts_p and uart1_puts_p
+
+Michael Diedler 04.04.2020
+ADDED #ifdef UART_USE_ENABLED to easily turn off compilation of this file
 */
 
 /************************************************************************
@@ -77,6 +80,9 @@ were adapted from the Arduino HardwareSerial.h library by Tim Sharpe on
  *  @copyright (C) 2015 Peter Fleury, GNU General Public License Version 3
  */
  
+#include "Modules.h"
+
+#ifdef UART_USE_ENABLED
 
 #include <avr/pgmspace.h>
 
@@ -240,5 +246,6 @@ extern void uart1_flush(void);
 /**@}*/
 
 
-#endif // UART_H 
+#endif
 
+#endif // UART_H 

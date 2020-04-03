@@ -46,6 +46,7 @@ der aber im "Programm-Flash" abgespeichert wird und nicht im "RAM".
 // CONSTANT ARRAYs IN .TEXT = ROM ARREA   .DATA IST SRAM !! .BSS SRAM
 // const char MCA_DELIMTERSTR[] PROGMEM = { ',',0 };
 
+#include "Modules.h"
 
 #ifdef UART_USE_ENABLED
 char gcaStr[STRMAX + 1]; //+1 for the 0
