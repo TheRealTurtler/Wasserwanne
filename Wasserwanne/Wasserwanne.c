@@ -11,9 +11,6 @@
 
 // ================ static Funktionen =====================
 
-static void InitOverrideActivateInterrupt( void );
-static void InitOverrideInterrupt( void );
-static void InitSensorInterrupt( void );
 static void InitTimer2( void );
 
 
@@ -23,31 +20,19 @@ volatile WASSERWANNE_FLAGS gstWasserwanneFlags;
 volatile WASSERWANNE_DATA gstWasserwanneData;
 
 
+#ifdef WASSERWANNE_DEBUG_USED
+volatile WASSERWANNE_DEBUG gstWasserwanneDebug;
+#endif
+
+
 // ================ Interrupts ============================
 
-// **************************
-ISR( PCINT2_vect )
-// **************************
-// no longer used
-{
-	gstWasserwanneData.u16Bounces++;
-	TOGGLE_WASSERWANNE_BUSY_LED_BIT();
-	
-	if ( SENSOR_PINX & SENSOR_BIT )
-	{
-		gstWasserwanneFlags.Valve_On_F = 1;
-	}
-	else if ( !( SENSOR_PINX & SENSOR_BIT ) )
-	{
-		gstWasserwanneFlags.Valve_Off_F = 1;
-	}
-	
-	gstWasserwanneFlags.Start_F = 1;
-}
-
-// **************************
+/**************************************************************************************************
+Function:	Timer 2 Compare A Interrupt
+Purpose:	Sets the output ports according to set flags
+Frequency:	1 kHz
+**************************************************************************************************/
 ISR( TIMER2_COMPA_vect )
-// **************************
 {
 	gstWasserwanneData.u32Ticks++;
 	
@@ -99,34 +84,14 @@ ISR( TIMER2_COMPA_vect )
 
 // ================ Funktionen ============================
 
-// **************************
-static void InitOverrideActivateInterrupt( void )	// INT1
-// **************************
-{
-	// no longer used
-	return;
-}
-
-// **************************
-static void InitOverrideInterrupt( void )			// INT2
-// **************************
-{
-	// no longer used
-	return;
-}
-
-// **************************
-static void InitSensorInterrupt( void )				// PCINT16
-// **************************
-{
-	// no longer used
-	PCICR |= _BV( PCIE2 );
-	PCMSK2 |= _BV( PCINT16 );
-}
-
-// **************************
+/**************************************************************************************************
+Function:	Initialize timer 2
+Purpose:	Starts timer 2 with a frequency of 1 kHz -> 1 ms cycle time
+Requirements:	--
+Arguments:	--
+Return:		--
+**************************************************************************************************/
 static void InitTimer2( void )
-// **************************
 {
 	TCNT2 = 0;
 	OCR2A = 250;											// 16000000 / 64 / 250 = 1 kHz -> 1 ms
@@ -135,9 +100,15 @@ static void InitTimer2( void )
 	TIMSK2 = _BV( OCIE2A );									// Interrrupt enable
 }
 
-// **************************
+
+/**************************************************************************************************
+Function:	Initialize Wasserwanne
+Purpose:	Initializes ports, structs and calls the InitTimer2() and CloseValve() functions
+Requirements:	--
+Arguments:	--
+Return:		--
+**************************************************************************************************/
 void InitWasserwanne( void )
-// **************************
 {
 	cli();
 	
@@ -159,61 +130,147 @@ void InitWasserwanne( void )
 	
 	gstWasserwanneData.u32Ticks = 0;
 	gstWasserwanneData.u16ValveTicks = 0;
-	gstWasserwanneData.u16Bounces = 0;
-	gstWasserwanneData.u16SensorSwitches = 0;
-	gstWasserwanneData.u8CurrentSensorState = 0;
-	gstWasserwanneData.u8LastSensorState = 0;
 	
-	//InitOverrideActivateInterrupt();
-	//InitOverrideInterrupt();
-	//InitSensorInterrupt();
+	
+#ifdef WASSERWANNE_DEBUG_USED
+	gstWasserwanneDebug.u8Debounce = 0;
+#endif
 	
 	InitTimer2();
 	
 	sei();
+	
+	CloseValve();
 }
 
 
-// **************************
+/**************************************************************************************************
+Function:	Check water-sensor
+Purpose:	Checks the sensor-bit for changes and sets flags accordingly
+Requirements:	stdbool.h
+Arguments:	--
+Return:		--
+**************************************************************************************************/
 void CheckWaterSensor( void )
-// **************************
 {
 	// Sensor-switch debouncing (according to Arduino sample project)
 	static uint32_t u32LastBounceTime = 0;
+	static bool bLastSensorState = SENSOR_ON_STATE;
+	static bool bSetSensorState = ~SENSOR_ON_STATE;
 	
-	uint8_t u8SensorState = SENSOR_PINX & SENSOR_BIT;
+	bool bSensorState;
 	
-	if ( u8SensorState != gstWasserwanneData.u8LastSensorState )
+	if ( SENSOR_PINX & SENSOR_BIT )
 	{
-		gstWasserwanneData.u16Bounces++;
-		u32LastBounceTime = gstWasserwanneData.u32Ticks;
+		bSensorState = 1;
+	}
+	else
+	{
+		bSensorState = 0;
+	}
+	
+	uint8_t u8Debounce = Debounce( bSensorState, &bLastSensorState,
+	                               &bSetSensorState, &u32LastBounceTime, DEBOUNCE_DELAY_MS +
+	                               VALVE_SIGNAL_TIME_MS, gstWasserwanneData.u32Ticks );
+	                               
+	if ( u8Debounce < 2 )
+	{
+		if ( u8Debounce == SENSOR_ON_STATE )
+		{
+			gstWasserwanneFlags.Valve_On_F = 1;
+			gstWasserwanneFlags.Valve_Off_F = 0;
+		}
+		else
+		{
+			gstWasserwanneFlags.Valve_On_F = 0;
+			gstWasserwanneFlags.Valve_Off_F = 1;
+		}
+		
+		gstWasserwanneFlags.Start_F = 1;
+	}
+	
+#ifdef WASSERWANNE_DEBUG_USED
+	gstWasserwanneDebug.u8Debounce = u8Debounce;
+#endif
+}
+
+
+/**************************************************************************************************
+Function:	Debounce
+Purpose:	Debouncing of a mechanical switch
+Requirements:	stdbool.h
+Arguments:	bSwitchState:		Current state of the switch-pin (SWITCH_PINX & SWITCH_BIT)
+			bLastSwitchState:	State of the switch-pin the last time this function was called
+			bSetSwitchState:	Currently set switch-state (after debouncing)
+			u32LastBounceTime:	Time the switch last changed its state
+			u32DebounceDelay:	Delay until no state changes means no further bounces
+			u32TickCounter:		Externally incremented variable to keep track of time
+Return:		0: Finished debouncing and switch state is low (0)
+			1: Finished debouncing and switch state is high (1)
+			2: Not finished debouncing, function needs to be called again
+			3: Switch did not change state
+**************************************************************************************************/
+uint8_t Debounce( bool bSwitchState, bool* bLastSwitchState, bool* bSetSwitchState,
+                  uint32_t* u32LastBounceTime, uint32_t u32DebounceDelay, uint32_t u32TickCounter )
+{
+	uint8_t returnVal;
+	
+	if ( bSwitchState != *bLastSwitchState )
+	{
+		*u32LastBounceTime = u32TickCounter;
 	}
 	
 	// delay + signal time to ensure the previous signal has finished sending
-	if ( (gstWasserwanneData.u32Ticks - u32LastBounceTime) > (DEBOUNCE_DELAY_MS + VALVE_SIGNAL_TIME_MS) )
+	if ( ( u32TickCounter - *u32LastBounceTime ) > ( u32DebounceDelay ) )
 	{
-		if(u8SensorState != gstWasserwanneData.u8CurrentSensorState)
+	
+		if ( bSwitchState != *bSetSwitchState )
 		{
-			gstWasserwanneData.u8CurrentSensorState = u8SensorState;
+			*bSetSwitchState = bSwitchState;
 			
-			gstWasserwanneData.u16SensorSwitches++;
-			
-			if ( gstWasserwanneData.u8LastSensorState )
+			if ( *bLastSwitchState )
 			{
-				gstWasserwanneFlags.Valve_On_F = 1;
-				gstWasserwanneFlags.Valve_Off_F = 0;
+				returnVal = 1;
 			}
 			else
 			{
-				gstWasserwanneFlags.Valve_On_F = 0;
-				gstWasserwanneFlags.Valve_Off_F = 1;
+				returnVal = 0;
 			}
-			
-			gstWasserwanneFlags.Start_F = 1;	
+		}
+		else
+		{
+			returnVal = 3;
 		}
 	}
+	else
+	{
+		returnVal = 2;
+	}
 	
-	gstWasserwanneData.u8LastSensorState = u8SensorState;
+	*bLastSwitchState = bSwitchState;
+	
+	return returnVal;
+}
+
+
+/**************************************************************************************************
+Function:	Close valve
+Purpose:	Sets the flags for closing the valve
+Requirements:	--
+Arguments:	--
+Return:		--
+**************************************************************************************************/
+void CloseValve( void )
+{
+	gstWasserwanneFlags.Valve_On_F = 0;
+	gstWasserwanneFlags.Valve_Off_F = 1;
+	
+	gstWasserwanneFlags.Start_F = 1;
+	
+	while(gstWasserwanneFlags.Start_F || gstWasserwanneFlags.Active_F)
+	{
+		TOGGLE_WASSERWANNE_BUSY_LED_BIT();
+	}	
 }
 
 #endif

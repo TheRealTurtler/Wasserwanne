@@ -13,7 +13,9 @@
 
 #define UART_USE_ENABLED
 #define TEXT_SERVICE_ENABLED
+
 #define WASSERWANNE_USED
+#define WASSERWANNE_DEBUG_USED
 
 // ========================================================
 

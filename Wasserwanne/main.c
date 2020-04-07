@@ -75,7 +75,6 @@ int main( void )
 	
 #ifdef WASSERWANNE_USED
 	InitWasserwanne();
-	CheckWaterSensor();
 #endif
 	
 	sei();  // Interrupt einschalten
@@ -106,7 +105,7 @@ int main( void )
 				uart_puts( ULongToNumStr( gu32Ticks ) );
 				CRLF();
 				
-#ifdef WASSERWANNE_USED
+#ifdef WASSERWANNE_DEBUG_USED
 				uart_puts_p( PSTR( "Status:" ) );
 				CRLF();
 				uart_puts_p( PSTR( "\tSensor: " ) );
@@ -130,14 +129,11 @@ int main( void )
 				
 				CRLF();
 				
-				uart_puts_p( PSTR( "\tBounces: " ) );
-				uart_puts( UIntToNumStr( gstWasserwanneData.u16Bounces ) );
-				CRLF();
-				uart_puts_p( PSTR( "\tSensor Switches: " ) );
-				uart_puts( UIntToNumStr( gstWasserwanneData.u16SensorSwitches ) );
-				CRLF();
-				uart_puts_p( PSTR( "\tWasserwanne Ticks: : " ) );
+				uart_puts_p( PSTR( "\tWasserwanne Ticks: " ) );
 				uart_puts( ULongToNumStr( gstWasserwanneData.u32Ticks ) );
+				CRLF();
+				uart_puts_p( PSTR( "\tDebounce: " ) );
+				uart_puts( ULongToNumStr( gstWasserwanneDebug.u8Debounce ) );
 				CRLF();
 				CRLF();
 #endif

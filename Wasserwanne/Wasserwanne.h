@@ -74,8 +74,10 @@
 #define CLEAR_WASSERWANNE_BUSY_LED_BIT()	(WASSERWANNE_BUSY_LED_PORTX &= ~ WASSERWANNE_BUSY_LED_BIT)
 #define TOGGLE_WASSERWANNE_BUSY_LED_BIT()	(WASSERWANNE_BUSY_LED_PORTX ^= WASSERWANNE_BUSY_LED_BIT)
 
-#define VALVE_SIGNAL_TIME_MS 1000UL
-#define DEBOUNCE_DELAY_MS 50U
+#define VALVE_SIGNAL_TIME_MS 30U
+#define DEBOUNCE_DELAY_MS 2000UL
+
+#define SENSOR_ON_STATE 0				// Defines wether a high (1) or low (0) signals an activated sensor
 
 // ================ Structs ===============================
 
@@ -92,21 +94,29 @@ typedef struct
 {
 	uint32_t u32Ticks;
 	uint16_t u16ValveTicks;
-	
-	uint16_t u16Bounces;
-	uint16_t u16SensorSwitches;
-	
-	uint8_t u8CurrentSensorState;
-	uint8_t u8LastSensorState;
 } WASSERWANNE_DATA;
+
+#ifdef WASSERWANNE_DEBUG_USED
+typedef struct
+{
+	uint8_t u8Debounce;
+} WASSERWANNE_DEBUG;
+#endif
 
 extern volatile WASSERWANNE_FLAGS gstWasserwanneFlags;
 extern volatile WASSERWANNE_DATA gstWasserwanneData;
+
+#ifdef WASSERWANNE_DEBUG_USED
+extern volatile WASSERWANNE_DEBUG gstWasserwanneDebug;
+#endif
 
 // ================ Funktionen ============================
 
 void InitWasserwanne( void );
 void CheckWaterSensor( void );
+uint8_t Debounce( bool bSwitchState, bool* bLastSwitchState, bool* bSetSwitchState,
+                  uint32_t* u32LastBounceTime, uint32_t u32DebounceDelay, uint32_t u32TickCounter );
+void CloseValve( void );
 
 #endif
 
