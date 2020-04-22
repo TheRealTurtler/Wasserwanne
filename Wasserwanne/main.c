@@ -85,7 +85,14 @@ int main( void )
 		wdt_reset();
 		
 #ifdef WASSERWANNE_USED
-		CheckWaterSensor();
+		if ( CheckOverrideActivate() )
+		{
+			CheckOverride();
+		}
+		else
+		{
+			CheckWaterSensor();
+		}
 #endif
 		
 // 		if ( gstFlags.TICK_100MS__Flag ) // Ask Flag == TRUE
@@ -132,9 +139,27 @@ int main( void )
 				uart_puts_p( PSTR( "\tWasserwanne Ticks: " ) );
 				uart_puts( ULongToNumStr( gstWasserwanneData.u32Ticks ) );
 				CRLF();
-				uart_puts_p( PSTR( "\tDebounce: " ) );
-				uart_puts( ULongToNumStr( gstWasserwanneDebug.u8Debounce ) );
+				
+				uart_puts_p( PSTR( "\tOverride: " ) );
+				
+				if ( gstWasserwanneFlags.Override_Active_F )
+				{
+					uart_puts_p( PSTR( "ACTIVE" ) );
+				}
+				else
+				{
+					uart_puts_p( PSTR( "INACTIVE" ) );
+				}
+				
 				CRLF();
+				
+#ifdef WASSERWANNE_DEBUG_USED
+				uart_puts_p( PSTR( "\tDebug: " ) );
+				uart_puts( ULongToNumStr( gstWasserwanneDebug.u8Debug ) );
+				
+				CRLF();
+#endif
+				
 				CRLF();
 #endif
 			};

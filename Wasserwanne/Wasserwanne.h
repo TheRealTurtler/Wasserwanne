@@ -74,10 +74,13 @@
 #define CLEAR_WASSERWANNE_BUSY_LED_BIT()	(WASSERWANNE_BUSY_LED_PORTX &= ~ WASSERWANNE_BUSY_LED_BIT)
 #define TOGGLE_WASSERWANNE_BUSY_LED_BIT()	(WASSERWANNE_BUSY_LED_PORTX ^= WASSERWANNE_BUSY_LED_BIT)
 
-#define VALVE_SIGNAL_TIME_MS 30U
-#define DEBOUNCE_DELAY_MS 2000UL
+#define VALVE_SIGNAL_TIME_MS		30U
+#define SENSOR_DEBOUNCE_DELAY_MS	50U
+#define OVERRIDE_DEBOUNCE_DELAY_MS	50U
 
-#define SENSOR_ON_STATE 0				// Defines wether a high (1) or low (0) signals an activated sensor
+#define SENSOR_ON_STATE				0	// Defines wether a high (1) or low (0) signals an activated sensor
+#define OVERRIDE_ACTIVATE_ON_STATE	0	// Defines wether a high (1) or low (0) signals an activated override activation
+#define OVERRIDE_ON_STATE			0	// Defines wether a high (1) or low (0) signals an activated override
 
 // ================ Structs ===============================
 
@@ -88,6 +91,7 @@ typedef struct
 	unsigned char Valve_On_F : 1;
 	unsigned char Valve_Off_F : 1;
 	unsigned char Valve_State_F : 1;
+	unsigned char Override_Active_F : 1;
 } WASSERWANNE_FLAGS;
 
 typedef struct
@@ -99,7 +103,8 @@ typedef struct
 #ifdef WASSERWANNE_DEBUG_USED
 typedef struct
 {
-	uint8_t u8Debounce;
+	unsigned char Debug_F : 1;
+	uint8_t u8Debug;
 } WASSERWANNE_DEBUG;
 #endif
 
@@ -114,9 +119,13 @@ extern volatile WASSERWANNE_DEBUG gstWasserwanneDebug;
 
 void InitWasserwanne( void );
 void CheckWaterSensor( void );
-uint8_t Debounce( bool bSwitchState, bool* bLastSwitchState, bool* bSetSwitchState,
-                  uint32_t* u32LastBounceTime, uint32_t u32DebounceDelay, uint32_t u32TickCounter );
+uint8_t DebounceButton( bool bButtonState, bool* bLastButtonState, bool* bSetButtonState,
+                        uint32_t* u32LastBounceTime, uint32_t u32DebounceDelay, uint32_t u32TickCounter );
+uint8_t DebounceSwitch( bool bSwitchState, bool* bLastSwitchState, bool* bSetSwitchState,
+                        uint32_t* u32LastBounceTime, uint32_t u32DebounceDelay, uint32_t u32TickCounter );
 void CloseValve( void );
+bool CheckOverrideActivate( void );
+void CheckOverride( void );
 
 #endif
 
