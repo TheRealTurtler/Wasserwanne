@@ -11,11 +11,12 @@
 
 // ================ Modules ===============================
 
-#define UART_USE_ENABLED
-#define TEXT_SERVICE_ENABLED
+//#define TIMER0_USED
+//#define UART_USE_ENABLED
+//#define TEXT_SERVICE_ENABLED
 
 #define WASSERWANNE_USED
-#define WASSERWANNE_DEBUG_USED
+//#define WASSERWANNE_DEBUG_USED
 
 // ========================================================
 

@@ -16,8 +16,9 @@ volatile BIT_FIELD_TYPE gstFlags;
 // #define TICK_100MS_EVENT	0x20
 // #define TICK_FAST_EVENT		0x10
 
+#ifdef TIMER0_USED
 // *******************
-ISR( TIMER0_COMPA_vect ) // 250*/sec
+ISR( TIM0_COMPA_vect ) // 250*/sec
 // *******************
 {
 	gu32Ticks++;  // ~250/Sekunde
@@ -38,7 +39,9 @@ ISR( TIMER0_COMPA_vect ) // 250*/sec
 	}
 	
 };
+#endif
 
+#ifdef TIMER0_USED
 // *****************************
 void StartTickTimer( void )
 // *****************************
@@ -52,6 +55,7 @@ void StartTickTimer( void )
 	TCCR0B = ( 1 << CS02 );	//Vorteiler /256
 //TCCR0B = (1<< CS02) | _BV(CS00);	//Vorteiler /1024
 };
+#endif
 
 
 // *****************
@@ -71,7 +75,9 @@ int main( void )
 	wdt_enable( WDTO_1S ); //Totmannknopf
 	wdt_reset();
 	
+#ifdef TIMER0_USED
 	StartTickTimer();
+#endif
 	
 #ifdef WASSERWANNE_USED
 	InitWasserwanne();
@@ -95,6 +101,7 @@ int main( void )
 		}
 #endif
 		
+#ifdef TIMER0_USED
 // 		if ( gstFlags.TICK_100MS__Flag ) // Ask Flag == TRUE
 // 		{
 // 			gstFlags.TICK_100MS__Flag = 0;
@@ -153,12 +160,10 @@ int main( void )
 				
 				CRLF();
 				
-#ifdef WASSERWANNE_DEBUG_USED
 				uart_puts_p( PSTR( "\tDebug: " ) );
 				uart_puts( ULongToNumStr( gstWasserwanneDebug.u8Debug ) );
 				
 				CRLF();
-#endif
 				
 				CRLF();
 #endif
@@ -166,6 +171,7 @@ int main( void )
 #endif
 			
 		};
+#endif
 		
 #ifdef UART_USE_ENABLED
 		if ( gsCmd.UartCREventFlag ) // bearbeite Carriage Return Order

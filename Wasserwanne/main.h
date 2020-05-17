@@ -8,7 +8,8 @@ file:///C:/WinAVR-20100110/doc/avr-libc/avr-libc-user-manual/index.html
 
 // =============================================================
 
-#define F_CPU 16000000UL
+//#define F_CPU 16000000UL	// 16 MHz for ATmega2560
+#define F_CPU 1000000UL		// 1 MHz for ATtiny84
 
 // =============================================================
 

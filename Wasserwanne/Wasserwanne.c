@@ -32,7 +32,7 @@ Function:	Timer 2 Compare A Interrupt
 Purpose:	Sets the output ports according to set flags
 Frequency:	1 kHz
 **************************************************************************************************/
-ISR( TIMER2_COMPA_vect )
+ISR( TIM1_COMPA_vect )
 {
 	gstWasserwanneData.u32Ticks++;
 	
@@ -93,11 +93,11 @@ Return:		--
 **************************************************************************************************/
 static void InitTimer2( void )
 {
-	TCNT2 = 0;
-	OCR2A = 250;											// 16000000 / 64 / 250 = 1 kHz -> 1 ms
-	TCCR2A = _BV( WGM21 );									// CTC mode
-	TCCR2B = _BV( CS22 );									// Prescaler / 64
-	TIMSK2 = _BV( OCIE2A );									// Interrrupt enable
+	TCNT1 = 0;
+	OCR1A = 1000;											// 16000000 / 64 / 250 = 1 kHz -> 1 ms
+	TCCR1A = _BV( WGM11 );									// CTC mode
+	TCCR1B = _BV( CS10 );									// Prescaler / 64
+	TIMSK1 = _BV( OCIE1A );									// Interrrupt enable
 }
 
 
