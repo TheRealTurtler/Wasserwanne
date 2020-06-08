@@ -75,8 +75,8 @@
 #define TOGGLE_WASSERWANNE_BUSY_LED_BIT()	(WASSERWANNE_BUSY_LED_PORTX ^= WASSERWANNE_BUSY_LED_BIT)
 
 #define VALVE_SIGNAL_TIME_MS		30U
-#define SENSOR_DEBOUNCE_DELAY_MS	50U
-#define OVERRIDE_DEBOUNCE_DELAY_MS	50U
+#define SENSOR_DEBOUNCE_DELAY_MS	500U
+#define OVERRIDE_DEBOUNCE_DELAY_MS	500U
 
 #define SENSOR_ON_STATE				0	// Defines wether a high (1) or low (0) signals an activated sensor
 #define OVERRIDE_ACTIVATE_ON_STATE	0	// Defines wether a high (1) or low (0) signals an activated override activation

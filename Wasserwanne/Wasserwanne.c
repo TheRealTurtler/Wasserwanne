@@ -11,7 +11,7 @@
 
 // ================ static Funktionen =====================
 
-static void InitTimer2( void );
+static void InitTimer1( void );
 
 
 // ================ Globale Variablen =====================
@@ -28,7 +28,7 @@ volatile WASSERWANNE_DEBUG gstWasserwanneDebug;
 // ================ Interrupts ============================
 
 /**************************************************************************************************
-Function:	Timer 2 Compare A Interrupt
+Function:	Timer 1 Compare A Interrupt
 Purpose:	Sets the output ports according to set flags
 Frequency:	1 kHz
 **************************************************************************************************/
@@ -85,25 +85,25 @@ ISR( TIM1_COMPA_vect )
 // ================ Funktionen ============================
 
 /**************************************************************************************************
-Function:	Initialize timer 2
-Purpose:	Starts timer 2 with a frequency of 1 kHz -> 1 ms cycle time
+Function:	Initialize timer 1
+Purpose:	Starts timer 1 with a frequency of 1 kHz -> 1 ms cycle time
 Requirements:	--
 Arguments:	--
 Return:		--
 **************************************************************************************************/
-static void InitTimer2( void )
+static void InitTimer1( void )
 {
 	TCNT1 = 0;
-	OCR1A = 1000;											// 16000000 / 64 / 250 = 1 kHz -> 1 ms
+	OCR1A = 1000;											// 1000000 / 1 / 1000 = 1 kHz -> 1 ms
 	TCCR1A = _BV( WGM11 );									// CTC mode
-	TCCR1B = _BV( CS10 );									// Prescaler / 64
+	TCCR1B = _BV( CS10 );									// Prescaler / 1
 	TIMSK1 = _BV( OCIE1A );									// Interrrupt enable
 }
 
 
 /**************************************************************************************************
 Function:	Initialize Wasserwanne
-Purpose:	Initializes ports, structs and calls the InitTimer2() and CloseValve() functions
+Purpose:	Initializes ports, structs and calls the InitTimer1() and CloseValve() functions
 Requirements:	--
 Arguments:	--
 Return:		--
@@ -138,7 +138,7 @@ void InitWasserwanne( void )
 	gstWasserwanneDebug.u8Debug = 0;
 #endif
 	
-	InitTimer2();
+	InitTimer1();
 	
 	sei();
 	
