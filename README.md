@@ -8,4 +8,4 @@ when the water level drops below the sensor.
 - Switches for manual override
 
 # Circuit schematic
-For the circuit schematic have a look at the Schaltplan.svg file.
+For the circuit schematic have a look at the Schaltplan.pdf file.
