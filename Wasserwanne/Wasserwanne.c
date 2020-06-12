@@ -24,6 +24,8 @@ volatile WASSERWANNE_DATA gstWasserwanneData;
 volatile WASSERWANNE_DEBUG gstWasserwanneDebug;
 #endif
 
+const uint16_t cu16HearbeatDelayMS = 5000U;
+const uint16_t cu16HearbeatDurationMS = 500U;
 
 // ================ Interrupts ============================
 
@@ -34,6 +36,11 @@ Frequency:	1 kHz
 **************************************************************************************************/
 ISR( TIM1_COMPA_vect )
 {
+	if ( gstWasserwanneData.u32Ticks == UINT32_MAX )
+	{
+		gstWasserwanneData.u32Ticks = 0;
+	}
+	
 	gstWasserwanneData.u32Ticks++;
 	
 	if ( gstWasserwanneFlags.Start_F )
@@ -79,6 +86,26 @@ ISR( TIM1_COMPA_vect )
 			gstWasserwanneFlags.Active_F = 0;
 		}
 	}
+	
+	// Heartbeat
+	
+	if ( !( gstWasserwanneData.u32Ticks % cu16HearbeatDelayMS ) )
+	{
+		gstWasserwanneFlags.Heartbeat_F = 1;
+		SET_WASSERWANNE_HEARTBEAT_LED_BIT();
+	}
+	
+	if ( gstWasserwanneFlags.Heartbeat_F )
+	{
+		gstWasserwanneData.u16HeartbeatTicks++;
+		
+		if ( gstWasserwanneData.u16HeartbeatTicks > cu16HearbeatDurationMS )
+		{
+			CLEAR_WASSERWANNE_HEARTBEAT_LED_BIT();
+			gstWasserwanneFlags.Heartbeat_F = 0;
+			gstWasserwanneData.u16HeartbeatTicks = 0;
+		}
+	}
 }
 
 
@@ -112,25 +139,31 @@ void InitWasserwanne( void )
 {
 	cli();
 	
-	//INIT_OVERRIDE_BIT();
+	INIT_OVERRIDE_BIT();
 	
-	//INIT_OVERRIDE_ACTIVATE_BIT();
+	INIT_OVERRIDE_ACTIVATE_BIT();
 	
 	INIT_SENSOR_BIT();
-	INIT_SENSOR_BIT_PULLUP();
+	//INIT_SENSOR_BIT_PULLUP();
 	
 	INIT_VALVE_ON_BIT();
 	INIT_VALVE_OFF_BIT();
+	INIT_WASSERWANNE_HEARTBEAT_LED_BIT();
+	
+#ifdef WASSERWANNE_DEBUG_USED
 	INIT_WASSERWANNE_BUSY_LED_BIT();
+#endif
 	
 	gstWasserwanneFlags.Start_F = 0;
 	gstWasserwanneFlags.Active_F = 0;
 	gstWasserwanneFlags.Valve_On_F = 0;
 	gstWasserwanneFlags.Valve_Off_F = 0;
 	gstWasserwanneFlags.Valve_State_F = 0;
+	gstWasserwanneFlags.Heartbeat_F = 0;
 	
 	gstWasserwanneData.u32Ticks = 0;
 	gstWasserwanneData.u16ValveTicks = 0;
+	gstWasserwanneData.u16HeartbeatTicks = 0;
 	
 	
 #ifdef WASSERWANNE_DEBUG_USED
@@ -222,6 +255,11 @@ uint8_t DebounceButton( bool bButtonState, bool* bLastButtonState, bool* bSetBut
 {
 	uint8_t returnVal;
 	
+	if ( u32TickCounter < *u32LastBounceTime )
+	{
+		*u32LastBounceTime = u32TickCounter;
+	}
+	
 	if ( bButtonState != *bLastButtonState )
 	{
 		*u32LastBounceTime = u32TickCounter;
@@ -278,6 +316,11 @@ uint8_t DebounceSwitch( bool bSwitchState, bool* bLastSwitchState, bool* bSetSwi
 {
 	uint8_t returnVal;
 	
+	if ( u32TickCounter < *u32LastBounceTime )
+	{
+		*u32LastBounceTime = u32TickCounter;
+	}
+	
 	if ( bSwitchState != *bLastSwitchState )
 	{
 		*u32LastBounceTime = u32TickCounter;
@@ -324,7 +367,7 @@ void CloseValve( void )
 	
 	while ( gstWasserwanneFlags.Start_F || gstWasserwanneFlags.Active_F )
 	{
-		TOGGLE_WASSERWANNE_BUSY_LED_BIT();
+		_delay_ms( 1 );
 	}
 }
 
