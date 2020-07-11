@@ -48,7 +48,7 @@ der aber im "Programm-Flash" abgespeichert wird und nicht im "RAM".
 
 #include "Modules.h"
 
-#ifdef UART_USE_ENABLED
+#ifdef UART_ENABLED
 char gcaStr[STRMAX + 1]; //+1 for the 0
 char gcaNumStr[NUMMAX + 1]; //+1 for the 0
 char gcaRxStr[RX_STRMAX + 1]; //+1 for the 0

@@ -6,7 +6,7 @@
 
 #include "Modules.h"
 
-#ifdef UART_USE_ENABLED	
+#ifdef UART_ENABLED	
 //#define ASC_DELIMITER	','
 //const char MCA_DELIMTERSTR[] PROGMEM = { ',',0 };
 //const char MCA_DELIMITER_MSG[] PROGMEM	= ",";
@@ -35,6 +35,6 @@ extern void ResetRxBuff(void);
 extern void UART_RX_Check(void);
 extern void CheckOrder(void); // von Main
 
-#endif //UART_USE_ENABLED
+#endif //UART_ENABLED
 
 #endif // BEFEHLE_HEADER

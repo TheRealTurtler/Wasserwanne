@@ -3,13 +3,13 @@
 Kurs
 28.03.2019 
 */
-// NUR wenn #define UART_USE_ENABLED gibt es weitere kleine Funktionen
+// NUR wenn #define UART_ENABLED gibt es weitere kleine Funktionen
 
 #include "main.h"
 
-#include "Modules.h"
+#include "TextService.h"
 
-#ifdef UART_USE_ENABLED
+#ifdef UART_ENABLED
 // *************
 void CRLF(void)
 // *************

@@ -15,7 +15,7 @@
 
 #include "Modules.h"
 
-#ifdef WASSERWANNE_USED
+#ifdef WASSERWANNE_ENABLED
 
 // ================ Includes ==============================
 
@@ -29,6 +29,10 @@
 #include <util/delay.h>
 #include <stdbool.h>
 
+#ifdef ADC_ENABLED
+#include "ADC.h"
+#endif
+
 #ifdef UART_USE_ENABLED
 #include "uart.h"
 #include "TextService.h"
@@ -39,20 +43,20 @@
 #define SENSOR_DDRX							DDRA
 #define SENSOR_PORTX						PORTA
 #define SENSOR_PINX							PINA
-#define SENSOR_BIT							_BV(0)
+#define SENSOR_BIT							_BV(5)
 #define INIT_SENSOR_BIT()					(SENSOR_DDRX &= ~SENSOR_BIT)
 #define INIT_SENSOR_BIT_PULLUP()			(SENSOR_PORTX |= SENSOR_BIT)
 
 #define VALVE_ON_DDRX						DDRA
 #define VALVE_ON_PORTX						PORTA
-#define VALVE_ON_BIT						_BV(3)
+#define VALVE_ON_BIT						_BV(2)
 #define INIT_VALVE_ON_BIT()					(VALVE_ON_DDRX |= VALVE_ON_BIT)
 #define SET_VALVE_ON_BIT()					(VALVE_ON_PORTX |= VALVE_ON_BIT)
 #define CLEAR_VALVE_ON_BIT()				(VALVE_ON_PORTX &= ~VALVE_ON_BIT)
 
 #define VALVE_OFF_DDRX						DDRA
 #define VALVE_OFF_PORTX						PORTA
-#define VALVE_OFF_BIT						_BV(4)
+#define VALVE_OFF_BIT						_BV(3)
 #define INIT_VALVE_OFF_BIT()				(VALVE_OFF_DDRX |= VALVE_OFF_BIT)
 #define SET_VALVE_OFF_BIT()					(VALVE_OFF_PORTX |= VALVE_OFF_BIT)
 #define CLEAR_VALVE_OFF_BIT()				(VALVE_OFF_PORTX &= ~VALVE_OFF_BIT)
@@ -67,19 +71,21 @@
 #define OVERRIDE_ACTIVATE_DDRX				DDRA
 #define OVERRIDE_ACTIVATE_PORTX				PORTA
 #define OVERRIDE_ACTIVATE_PINX				PINA
-#define OVERRIDE_ACTIVATE_BIT				_BV(2)
+#define OVERRIDE_ACTIVATE_BIT				_BV(0)
 #define INIT_OVERRIDE_ACTIVATE_BIT()		(OVERRIDE_ACTIVATE_DDRX &= ~OVERRIDE_ACTIVATE_BIT)
 #define INT_OVERRIDE_ACTIVATE_BIT_PULLUP()	(OVERRIDE_ACTIVATE_PORTX |= OVERRIDE_ACTIVATE_BIT)
 
-#define WASSERWANNE_HEARTBEAT_LED_DDRX			DDRA
-#define WASSERWANNE_HEARTBEAT_LED_PORTX			PORTA
-#define WASSERWANNE_HEARTBEAT_LED_BIT			_BV(5)
+#ifdef WASSERWANNE_HEARTBEAT_ENABLED
+#define WASSERWANNE_HEARTBEAT_LED_DDRX			DDRB
+#define WASSERWANNE_HEARTBEAT_LED_PORTX			PORTB
+#define WASSERWANNE_HEARTBEAT_LED_BIT			_BV(2)
 #define INIT_WASSERWANNE_HEARTBEAT_LED_BIT()	(WASSERWANNE_HEARTBEAT_LED_DDRX |= WASSERWANNE_HEARTBEAT_LED_BIT)
 #define SET_WASSERWANNE_HEARTBEAT_LED_BIT()		(WASSERWANNE_HEARTBEAT_LED_PORTX |= WASSERWANNE_HEARTBEAT_LED_BIT)
 #define CLEAR_WASSERWANNE_HEARTBEAT_LED_BIT()	(WASSERWANNE_HEARTBEAT_LED_PORTX &= ~ WASSERWANNE_HEARTBEAT_LED_BIT)
 #define TOGGLE_WASSERWANNE_HEARTBEAT_LED_BIT()	(WASSERWANNE_HEARTBEAT_LED_PORTX ^= WASSERWANNE_HEARTBEAT_LED_BIT)
+#endif
 
-#ifdef WASSERWANNE_DEBUG_USED
+#ifdef WASSERWANNE_DEBUG_ENABLED
 #define WASSERWANNE_BUSY_LED_DDRX			DDRA
 #define WASSERWANNE_BUSY_LED_PORTX			PORTA
 #define WASSERWANNE_BUSY_LED_BIT			_BV(5)
@@ -98,6 +104,13 @@
 #define OVERRIDE_ACTIVATE_ON_STATE	0	// Defines wether a high (1) or low (0) signals an activated override activation
 #define OVERRIDE_ON_STATE			0	// Defines wether a high (1) or low (0) signals an activated override
 
+
+#ifdef ADC_ENABLED
+#define ADC_MIN 3.0f
+#define ADC_REF 5.0f
+#define ADC_REACTIVATE 3.2f
+#endif
+
 // ================ Structs ===============================
 
 typedef struct
@@ -108,7 +121,16 @@ typedef struct
 	unsigned char Valve_Off_F : 1;
 	unsigned char Valve_State_F : 1;
 	unsigned char Override_Active_F : 1;
+	
+#ifdef WASSERWANNE_HEARTBEAT_ENABLED
 	unsigned char Heartbeat_F : 1;
+#endif
+
+#ifdef ADC_ENABLED
+	unsigned char ADC_F : 1;
+	unsigned char Power_Low_F : 1;
+#endif
+
 } WASSERWANNE_FLAGS;
 
 typedef struct
@@ -118,7 +140,7 @@ typedef struct
 	uint16_t u16HeartbeatTicks;
 } WASSERWANNE_DATA;
 
-#ifdef WASSERWANNE_DEBUG_USED
+#ifdef WASSERWANNE_DEBUG_ENABLED
 typedef struct
 {
 	unsigned char Debug_F : 1;
@@ -129,7 +151,7 @@ typedef struct
 extern volatile WASSERWANNE_FLAGS gstWasserwanneFlags;
 extern volatile WASSERWANNE_DATA gstWasserwanneData;
 
-#ifdef WASSERWANNE_DEBUG_USED
+#ifdef WASSERWANNE_DEBUG_ENABLED
 extern volatile WASSERWANNE_DEBUG gstWasserwanneDebug;
 #endif
 
@@ -142,7 +164,7 @@ uint8_t DebounceButton( bool bButtonState, bool* bLastButtonState, bool* bSetBut
 uint8_t DebounceSwitch( bool bSwitchState, bool* bLastSwitchState, bool* bSetSwitchState,
                         uint32_t* u32LastBounceTime, uint32_t u32DebounceDelay, uint32_t u32TickCounter );
 void CloseValve( void );
-bool CheckOverrideActivate( void );
+bool CheckOverrideActivate( bool *bLastStableSwitchState );
 void CheckOverride( void );
 
 #endif

@@ -9,8 +9,11 @@ file:///C:/WinAVR-20100110/doc/avr-libc/avr-libc-user-manual/index.html
 // =============================================================
 
 // F_CPU also used in: Wasserwanne.h
+// Better: define in properties -> symbols : F_CPU=1000000UL
+#ifndef F_CPU
 //#define F_CPU 16000000UL	// 16 MHz for ATmega2560
 #define F_CPU 1000000UL		// 1 MHz for ATtiny84
+#endif
 
 // =============================================================
 
@@ -32,6 +35,8 @@ file:///C:/WinAVR-20100110/doc/avr-libc/avr-libc-user-manual/index.html
 #include "TextService.h"
 #include "Befehle.h"
 #include "Wasserwanne.h"
+#include "i2clcd.h"
+#include "ADC.h"
 
 #define _CLEARMASK_	&=	//Und= löscht Bits OHNE Komplement
 #define _CLEARBIT_	&=~	//Und=~ löscht Bits mit Komplement

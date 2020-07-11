@@ -7,7 +7,7 @@
 
 #include "Wasserwanne.h"
 
-#ifdef WASSERWANNE_USED
+#ifdef WASSERWANNE_ENABLED
 
 // ================ static Funktionen =====================
 
@@ -20,12 +20,18 @@ volatile WASSERWANNE_FLAGS gstWasserwanneFlags;
 volatile WASSERWANNE_DATA gstWasserwanneData;
 
 
-#ifdef WASSERWANNE_DEBUG_USED
+#ifdef WASSERWANNE_DEBUG_ENABLED
 volatile WASSERWANNE_DEBUG gstWasserwanneDebug;
 #endif
 
-const uint16_t cu16HearbeatDelayMS = 5000U;
-const uint16_t cu16HearbeatDurationMS = 500U;
+#ifdef WASSERWANNE_HEARTBEAT_ENABLED
+const uint16_t cu16HearbeatDelayMS = 1000U;
+const uint16_t cu16HearbeatDurationMS = 200U;
+#endif
+
+#ifdef ADC_ENABLED
+const uint16_t cu16ADCdelayMS = 10000U;
+#endif
 
 // ================ Interrupts ============================
 
@@ -87,8 +93,7 @@ ISR( TIM1_COMPA_vect )
 		}
 	}
 	
-	// Heartbeat
-	
+#ifdef WASSERWANNE_HEARTBEAT_ENABLED
 	if ( !( gstWasserwanneData.u32Ticks % cu16HearbeatDelayMS ) )
 	{
 		gstWasserwanneFlags.Heartbeat_F = 1;
@@ -106,6 +111,14 @@ ISR( TIM1_COMPA_vect )
 			gstWasserwanneData.u16HeartbeatTicks = 0;
 		}
 	}
+#endif
+	
+#ifdef ADC_ENABLED
+	if ( !( gstWasserwanneData.u32Ticks % cu16ADCdelayMS ) )
+	{
+		gstWasserwanneFlags.ADC_F = 1;
+	}
+#endif
 }
 
 
@@ -118,15 +131,22 @@ Requirements:	--
 Arguments:	--
 Return:		--
 **************************************************************************************************/
+// static void InitTimer1( void )
+// {
+// 	TCNT1 = 0;
+// 	OCR1A = 1000;											// 1000000 / 1 / 1000 = 1 kHz -> 1 ms
+// 	TCCR1A = _BV( WGM11 );									// CTC mode
+// 	TCCR1B = _BV( CS10 ) | _BV( CS12 );						// Prescaler / 1
+// 	TIMSK1 = _BV( OCIE1A );									// Interrrupt enable
+// }
+
 static void InitTimer1( void )
 {
 	TCNT1 = 0;
 	OCR1A = 1000;											// 1000000 / 1 / 1000 = 1 kHz -> 1 ms
-	TCCR1A = _BV( WGM11 );									// CTC mode
-	TCCR1B = _BV( CS10 );									// Prescaler / 1
+	TCCR1B = _BV( WGM12 ) | _BV( CS10 );		// CTC mode, Prescaler / 1
 	TIMSK1 = _BV( OCIE1A );									// Interrrupt enable
 }
-
 
 /**************************************************************************************************
 Function:	Initialize Wasserwanne
@@ -148,9 +168,12 @@ void InitWasserwanne( void )
 	
 	INIT_VALVE_ON_BIT();
 	INIT_VALVE_OFF_BIT();
-	INIT_WASSERWANNE_HEARTBEAT_LED_BIT();
 	
-#ifdef WASSERWANNE_DEBUG_USED
+#ifdef WASSERWANNE_HEARTBEAT_ENABLED
+	INIT_WASSERWANNE_HEARTBEAT_LED_BIT();
+#endif
+	
+#ifdef WASSERWANNE_DEBUG_ENABLED
 	INIT_WASSERWANNE_BUSY_LED_BIT();
 #endif
 	
@@ -159,14 +182,22 @@ void InitWasserwanne( void )
 	gstWasserwanneFlags.Valve_On_F = 0;
 	gstWasserwanneFlags.Valve_Off_F = 0;
 	gstWasserwanneFlags.Valve_State_F = 0;
+	
+#ifdef WASSERWANNE_HEARTBEAT_ENABLED
 	gstWasserwanneFlags.Heartbeat_F = 0;
+#endif
+	
+#ifdef ADC_ENABLED
+	gstWasserwanneFlags.ADC_F = 0;
+	gstWasserwanneFlags.Power_Low_F = 0;
+#endif
 	
 	gstWasserwanneData.u32Ticks = 0;
 	gstWasserwanneData.u16ValveTicks = 0;
 	gstWasserwanneData.u16HeartbeatTicks = 0;
 	
 	
-#ifdef WASSERWANNE_DEBUG_USED
+#ifdef WASSERWANNE_DEBUG_ENABLED
 	gstWasserwanneDebug.Debug_F = 0;
 	gstWasserwanneDebug.u8Debug = 0;
 #endif
@@ -229,7 +260,7 @@ void CheckWaterSensor( void )
 		
 	}
 	
-#ifdef WASSERWANNE_DEBUG_USED
+#ifdef WASSERWANNE_DEBUG_ENABLED
 	gstWasserwanneDebug.u8Debug = u8Debounce;
 #endif
 }
@@ -368,6 +399,8 @@ void CloseValve( void )
 	while ( gstWasserwanneFlags.Start_F || gstWasserwanneFlags.Active_F )
 	{
 		_delay_ms( 1 );
+		
+		wdt_reset();
 	}
 }
 
@@ -379,9 +412,9 @@ Requirements:	stdbool.h
 Arguments:	--
 Return:		bool depending on state of override-activate-bit
 **************************************************************************************************/
-bool CheckOverrideActivate( void )
+bool CheckOverrideActivate( bool* bLastStableSwitchState )
 {
-	bool returnVal = 0;
+	bool returnVal = *bLastStableSwitchState;
 	
 	// Sensor-switch debouncing (according to Arduino sample project)
 	static uint32_t u32LastBounceTime = 0;
@@ -409,11 +442,13 @@ bool CheckOverrideActivate( void )
 		{
 			gstWasserwanneFlags.Override_Active_F = 1;
 			returnVal = 1;
+			*bLastStableSwitchState = returnVal;
 		}
 		else
 		{
 			gstWasserwanneFlags.Override_Active_F = 0;
 			returnVal = 0;
+			*bLastStableSwitchState = returnVal;
 		}
 	}
 	
@@ -470,5 +505,6 @@ void CheckOverride( void )
 		
 	}
 }
+
 
 #endif

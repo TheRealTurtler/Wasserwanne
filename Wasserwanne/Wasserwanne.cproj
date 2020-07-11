@@ -45,40 +45,40 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
       <AvrGcc>
-  <avrgcc.common.Device>-mmcu=attiny84a -B "%24(PackRepoDir)\atmel\ATtiny_DFP\1.3.229\gcc\dev\attiny84a"</avrgcc.common.Device>
-  <avrgcc.common.optimization.RelaxBranches>True</avrgcc.common.optimization.RelaxBranches>
-  <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
-  <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
-  <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
-  <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
-  <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
-  <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
-  <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
-  <avrgcc.compiler.symbols.DefSymbols>
-    <ListValues>
-      <Value>NDEBUG</Value>
-    </ListValues>
-  </avrgcc.compiler.symbols.DefSymbols>
-  <avrgcc.compiler.directories.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\atmel\ATtiny_DFP\1.3.229\include</Value>
-    </ListValues>
-  </avrgcc.compiler.directories.IncludePaths>
-  <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
-  <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
-  <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
-  <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
-  <avrgcc.linker.libraries.Libraries>
-    <ListValues>
-      <Value>libm</Value>
-    </ListValues>
-  </avrgcc.linker.libraries.Libraries>
-  <avrgcc.assembler.general.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\atmel\ATtiny_DFP\1.3.229\include</Value>
-    </ListValues>
-  </avrgcc.assembler.general.IncludePaths>
-</AvrGcc>
+        <avrgcc.common.Device>-mmcu=attiny84a -B "%24(PackRepoDir)\atmel\ATtiny_DFP\1.3.229\gcc\dev\attiny84a"</avrgcc.common.Device>
+        <avrgcc.common.optimization.RelaxBranches>True</avrgcc.common.optimization.RelaxBranches>
+        <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+        <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+        <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+        <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+        <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
+        <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+        <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+        <avrgcc.compiler.symbols.DefSymbols>
+          <ListValues>
+            <Value>NDEBUG</Value>
+          </ListValues>
+        </avrgcc.compiler.symbols.DefSymbols>
+        <avrgcc.compiler.directories.IncludePaths>
+          <ListValues>
+            <Value>%24(PackRepoDir)\atmel\ATtiny_DFP\1.3.229\include</Value>
+          </ListValues>
+        </avrgcc.compiler.directories.IncludePaths>
+        <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
+        <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+        <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+        <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+        <avrgcc.linker.libraries.Libraries>
+          <ListValues>
+            <Value>libm</Value>
+          </ListValues>
+        </avrgcc.linker.libraries.Libraries>
+        <avrgcc.assembler.general.IncludePaths>
+          <ListValues>
+            <Value>%24(PackRepoDir)\atmel\ATtiny_DFP\1.3.229\include</Value>
+          </ListValues>
+        </avrgcc.assembler.general.IncludePaths>
+      </AvrGcc>
     </ToolchainSettings>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -96,6 +96,7 @@
   <avrgcc.compiler.symbols.DefSymbols>
     <ListValues>
       <Value>DEBUG</Value>
+      <Value>F_CPU=1000000UL</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
   <avrgcc.compiler.directories.IncludePaths>
@@ -123,10 +124,28 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ADC.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ADC.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="Befehle.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Befehle.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="i2clcd.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="i2clcd.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="i2cmaster.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="i2cmaster.S">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">
@@ -156,11 +175,6 @@
     <Compile Include="Wasserwanne.h">
       <SubType>compile</SubType>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Notizen.txt">
-      <SubType>compile</SubType>
-    </None>
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
 </Project>
