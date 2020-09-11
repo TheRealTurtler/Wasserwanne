@@ -79,6 +79,10 @@
 */
 #endif /* DOXYGEN */
 
+#include "Modules.h"
+
+#ifdef I2C_ENABLED
+
 /**@{*/
 
 #if (__GNUC__ * 100 + __GNUC_MINOR__) < 304
@@ -173,6 +177,8 @@ extern unsigned char i2c_readNak(void);
 extern unsigned char i2c_read(unsigned char ack);
 #define i2c_read(ack)  (ack) ? i2c_readAck() : i2c_readNak(); 
 
+
+#endif // I2C_ENABLED
 
 /**@}*/
 #endif

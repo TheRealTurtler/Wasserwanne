@@ -35,7 +35,7 @@ file:///C:/WinAVR-20100110/doc/avr-libc/avr-libc-user-manual/index.html
 #include "TextService.h"
 #include "Befehle.h"
 #include "Wasserwanne.h"
-#include "i2clcd.h"
+//#include "i2clcd.h"
 #include "ADC.h"
 
 #define _CLEARMASK_	&=	//Und= löscht Bits OHNE Komplement

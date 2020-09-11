@@ -32,6 +32,10 @@
 
 #include <avr/io.h>
 
+#include "Modules.h"
+
+#ifdef I2C_ENABLED
+
 #undef SCL_PORT
 #undef SCL_DDR
 
@@ -333,3 +337,4 @@ i2c_put_ack_wait:
 	ret
 	.endfunc
 
+#endif // I2C_ENABLED

@@ -30,7 +30,7 @@ const uint16_t cu16HearbeatDurationMS = 200U;
 #endif
 
 #ifdef ADC_ENABLED
-const uint16_t cu16ADCdelayMS = 10000U;
+const uint16_t cu16ADCdelayMS = 60000U;
 #endif
 
 // ================ Interrupts ============================
@@ -194,8 +194,10 @@ void InitWasserwanne( void )
 	
 	gstWasserwanneData.u32Ticks = 0;
 	gstWasserwanneData.u16ValveTicks = 0;
-	gstWasserwanneData.u16HeartbeatTicks = 0;
 	
+#ifdef WASSERWANNE_HEARTBEAT_ENABLED	
+	gstWasserwanneData.u16HeartbeatTicks = 0;
+#endif
 	
 #ifdef WASSERWANNE_DEBUG_ENABLED
 	gstWasserwanneDebug.Debug_F = 0;
@@ -236,25 +238,18 @@ void CheckWaterSensor( void )
 	}
 	
 	uint8_t u8Debounce = DebounceSwitch( bSensorState, &bLastSensorState,
-	                                     &bSetSensorState, &u32LastBounceTime, SENSOR_DEBOUNCE_DELAY_MS +
-	                                     VALVE_SIGNAL_TIME_MS,
+	                                     &bSetSensorState, &u32LastBounceTime, SENSOR_DEBOUNCE_DELAY_MS,
 	                                     gstWasserwanneData.u32Ticks );
 	                                     
 	if ( u8Debounce < 2 )
 	{
 		if ( u8Debounce == SENSOR_ON_STATE && !gstWasserwanneFlags.Valve_State_F )
 		{
-			gstWasserwanneFlags.Valve_On_F = 1;
-			gstWasserwanneFlags.Valve_Off_F = 0;
-			
-			gstWasserwanneFlags.Start_F = 1;
+			OpenValve();
 		}
 		else if ( u8Debounce != SENSOR_ON_STATE && gstWasserwanneFlags.Valve_State_F )
 		{
-			gstWasserwanneFlags.Valve_On_F = 0;
-			gstWasserwanneFlags.Valve_Off_F = 1;
-			
-			gstWasserwanneFlags.Start_F = 1;
+			CloseValve();
 		}
 		
 		
@@ -394,14 +389,39 @@ void CloseValve( void )
 	gstWasserwanneFlags.Valve_On_F = 0;
 	gstWasserwanneFlags.Valve_Off_F = 1;
 	
+	gstWasserwanneFlags.Active_F = 0;
 	gstWasserwanneFlags.Start_F = 1;
 	
-	while ( gstWasserwanneFlags.Start_F || gstWasserwanneFlags.Active_F )
-	{
-		_delay_ms( 1 );
-		
-		wdt_reset();
-	}
+// 	while ( gstWasserwanneFlags.Start_F || gstWasserwanneFlags.Active_F )
+// 	{
+// 		_delay_ms( 1 );
+// 		
+// 		wdt_reset();
+// 	}
+}
+
+
+/**************************************************************************************************
+Function:	Open valve
+Purpose:	Sets the flags for opening the valve
+Requirements:	--
+Arguments:	--
+Return:		--
+**************************************************************************************************/
+void OpenValve( void )
+{
+	gstWasserwanneFlags.Valve_On_F = 1;
+	gstWasserwanneFlags.Valve_Off_F = 0;
+	
+	gstWasserwanneFlags.Active_F = 0;
+	gstWasserwanneFlags.Start_F = 1;
+	
+// 	while ( gstWasserwanneFlags.Start_F || gstWasserwanneFlags.Active_F )
+// 	{
+// 		_delay_ms( 1 );
+// 		
+// 		wdt_reset();
+// 	}
 }
 
 
@@ -410,11 +430,13 @@ Function:	Check override-activate
 Purpose:	Checks the override-activate-bit for changes and sets flags accordingly
 Requirements:	stdbool.h
 Arguments:	--
-Return:		bool depending on state of override-activate-bit
+Return:		0: Finished debouncing and override activate switch is off
+			1: Finished debouncing and override activate switch is on
+			2: Not finished debouncing, function needs to be called again
 **************************************************************************************************/
-bool CheckOverrideActivate( bool* bLastStableSwitchState )
+uint8_t CheckOverrideActivate( bool *bLastStableSwitchState )
 {
-	bool returnVal = *bLastStableSwitchState;
+	uint8_t returnVal = (uint8_t)*bLastStableSwitchState;
 	
 	// Sensor-switch debouncing (according to Arduino sample project)
 	static uint32_t u32LastBounceTime = 0;
@@ -440,16 +462,18 @@ bool CheckOverrideActivate( bool* bLastStableSwitchState )
 	{
 		if ( u8Debounce == OVERRIDE_ACTIVATE_ON_STATE )
 		{
-			gstWasserwanneFlags.Override_Active_F = 1;
 			returnVal = 1;
 			*bLastStableSwitchState = returnVal;
 		}
 		else
 		{
-			gstWasserwanneFlags.Override_Active_F = 0;
 			returnVal = 0;
 			*bLastStableSwitchState = returnVal;
 		}
+	}
+	else
+	{
+		returnVal = 2;
 	}
 	
 	return returnVal;
@@ -489,18 +513,11 @@ void CheckOverride( void )
 	{
 		if ( u8Debounce == OVERRIDE_ON_STATE && !gstWasserwanneFlags.Valve_State_F )
 		{
-			gstWasserwanneFlags.Valve_On_F = 1;
-			gstWasserwanneFlags.Valve_Off_F = 0;
-			
-			gstWasserwanneFlags.Start_F = 1;
-			
+			OpenValve();
 		}
 		else if ( u8Debounce != OVERRIDE_ON_STATE && gstWasserwanneFlags.Valve_State_F )
 		{
-			gstWasserwanneFlags.Valve_On_F = 0;
-			gstWasserwanneFlags.Valve_Off_F = 1;
-			
-			gstWasserwanneFlags.Start_F = 1;
+			CloseValve();
 		}
 		
 	}

@@ -55,11 +55,11 @@ Purpose:	Starts timer 0 with a frequency of 250,00 Hz
 static void InitTimer0( void )
 {
 	TCNT0 = 0;
-	OCR0A = 63;
-	TCCR0A = _BV( WGM01 );
-	TCCR0B = _BV( CS00 ) | _BV( CS01 );
+	OCR0A = 250;
+	TCCR0A = _BV( WGM01 ); 
+	TCCR0B = _BV( CS02 ); 
 	TIMSK0 = _BV( OCIE0A );
-}
+ }
 #endif
 
 
@@ -150,11 +150,12 @@ int main( void )
 		
 		if ( !gstWasserwanneFlags.Power_Low_F )
 		{
-			if ( CheckOverrideActivate( &bLastStableSwitchState ) )
+			uint8_t u8OverActState = CheckOverrideActivate( &bLastStableSwitchState );
+			if ( u8OverActState == 1 )
 			{
 				CheckOverride();
 			}
-			else
+			else if ( u8OverActState == 0 )
 			{
 				CheckWaterSensor();
 			}

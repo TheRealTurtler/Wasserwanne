@@ -64,14 +64,14 @@
 #define OVERRIDE_DDRX						DDRA
 #define OVERRIDE_PORTX						PORTA
 #define OVERRIDE_PINX						PINA
-#define OVERRIDE_BIT						_BV(1)
+#define OVERRIDE_BIT						_BV(0)
 #define INIT_OVERRIDE_BIT()					(OVERRIDE_DDRX &= ~ OVERRIDE_BIT)
 #define INIT_OVERRIDE_BIT_PULLUP()			(OVERRIDE_PORTX |= OVERRIDE_BIT)
 
 #define OVERRIDE_ACTIVATE_DDRX				DDRA
 #define OVERRIDE_ACTIVATE_PORTX				PORTA
 #define OVERRIDE_ACTIVATE_PINX				PINA
-#define OVERRIDE_ACTIVATE_BIT				_BV(0)
+#define OVERRIDE_ACTIVATE_BIT				_BV(1)
 #define INIT_OVERRIDE_ACTIVATE_BIT()		(OVERRIDE_ACTIVATE_DDRX &= ~OVERRIDE_ACTIVATE_BIT)
 #define INT_OVERRIDE_ACTIVATE_BIT_PULLUP()	(OVERRIDE_ACTIVATE_PORTX |= OVERRIDE_ACTIVATE_BIT)
 
@@ -95,9 +95,9 @@
 #define TOGGLE_WASSERWANNE_BUSY_LED_BIT()	(WASSERWANNE_BUSY_LED_PORTX ^= WASSERWANNE_BUSY_LED_BIT)
 #endif
 
-#define VALVE_SIGNAL_TIME_MS		30U
-#define SENSOR_DEBOUNCE_DELAY_MS	500U
-#define OVERRIDE_DEBOUNCE_DELAY_MS	500U
+#define VALVE_SIGNAL_TIME_MS		6000U
+#define SENSOR_DEBOUNCE_DELAY_MS	20U
+#define OVERRIDE_DEBOUNCE_DELAY_MS	20U
 
 
 #define SENSOR_ON_STATE				0	// Defines wether a high (1) or low (0) signals an activated sensor
@@ -120,7 +120,6 @@ typedef struct
 	unsigned char Valve_On_F : 1;
 	unsigned char Valve_Off_F : 1;
 	unsigned char Valve_State_F : 1;
-	unsigned char Override_Active_F : 1;
 	
 #ifdef WASSERWANNE_HEARTBEAT_ENABLED
 	unsigned char Heartbeat_F : 1;
@@ -137,7 +136,11 @@ typedef struct
 {
 	uint32_t u32Ticks;
 	uint16_t u16ValveTicks;
+
+#ifdef WASSERWANNE_HEARTBEAT_ENABLED	
 	uint16_t u16HeartbeatTicks;
+#endif
+	
 } WASSERWANNE_DATA;
 
 #ifdef WASSERWANNE_DEBUG_ENABLED
@@ -164,7 +167,8 @@ uint8_t DebounceButton( bool bButtonState, bool* bLastButtonState, bool* bSetBut
 uint8_t DebounceSwitch( bool bSwitchState, bool* bLastSwitchState, bool* bSetSwitchState,
                         uint32_t* u32LastBounceTime, uint32_t u32DebounceDelay, uint32_t u32TickCounter );
 void CloseValve( void );
-bool CheckOverrideActivate( bool *bLastStableSwitchState );
+void OpenValve( void );
+uint8_t CheckOverrideActivate( bool *bLastStableSwitchState );
 void CheckOverride( void );
 
 #endif
