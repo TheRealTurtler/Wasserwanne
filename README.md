@@ -9,3 +9,6 @@ when the water level drops below the sensor.
 
 # Circuit schematic
 For the circuit schematic have a look at the Schaltplan.pdf file.
+
+# About
+Project is written in C with ATMEL Studio. Should work fine when everything is copied into the Arduino IDE (no additional libraries required).
