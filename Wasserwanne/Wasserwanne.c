@@ -53,6 +53,7 @@ ISR( TIM1_COMPA_vect )
 	{
 		if ( gstWasserwanneFlags.Valve_On_F )
 		{
+			CLEAR_POWER_BIT();		// PNP Transistor -> leitend wenn Basis low
 			SET_VALVE_ON_BIT();
 			CLEAR_VALVE_OFF_BIT();
 			
@@ -60,6 +61,7 @@ ISR( TIM1_COMPA_vect )
 		}
 		else if ( gstWasserwanneFlags.Valve_Off_F )
 		{
+			CLEAR_POWER_BIT();		// PNP Transistor -> leitend wenn Basis low
 			SET_VALVE_OFF_BIT();
 			CLEAR_VALVE_ON_BIT();
 			
@@ -81,11 +83,13 @@ ISR( TIM1_COMPA_vect )
 			if ( gstWasserwanneFlags.Valve_On_F )
 			{
 				CLEAR_VALVE_ON_BIT();
+				SET_POWER_BIT();		// PNP Transistor -> sperrt wenn Basis high
 				gstWasserwanneFlags.Valve_On_F = 0;
 			}
 			else if ( gstWasserwanneFlags.Valve_Off_F )
 			{
 				CLEAR_VALVE_OFF_BIT();
+				SET_POWER_BIT();		// PNP Transistor -> sperrt wenn Basis high
 				gstWasserwanneFlags.Valve_Off_F = 0;
 			}
 			
@@ -144,7 +148,7 @@ static void InitTimer1( void )
 {
 	TCNT1 = 0;
 	OCR1A = 1000;											// 1000000 / 1 / 1000 = 1 kHz -> 1 ms
-	TCCR1B = _BV( WGM12 ) | _BV( CS10 );		// CTC mode, Prescaler / 1
+	TCCR1B = _BV( WGM12 ) | _BV( CS10 );					// CTC mode, Prescaler / 1
 	TIMSK1 = _BV( OCIE1A );									// Interrrupt enable
 }
 
@@ -168,6 +172,8 @@ void InitWasserwanne( void )
 	
 	INIT_VALVE_ON_BIT();
 	INIT_VALVE_OFF_BIT();
+	
+	INIT_POWER_BIT();
 	
 #ifdef WASSERWANNE_HEARTBEAT_ENABLED
 	INIT_WASSERWANNE_HEARTBEAT_LED_BIT();

@@ -19,9 +19,9 @@ uint16_t ReadADC( uint8_t u8Channel )
 {
 	// Set Vcc as reference voltage and select channel
 #if defined(__AVR_ATmega2560__)
-	ADMUX = u8Channel | _BV( REFS0 );
+	ADMUX = u8Channel | _BV(REFS0);
 #elif defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny84A__)
-	ADMUX = u8Channel;
+	ADMUX = u8Channel | _BV(REFS1);		// Internal voltage reference
 #else
 #error "No preset for ADMUX register available"
 #endif

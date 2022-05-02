@@ -13,8 +13,8 @@ volatile uint32_t gu32Ticks;
 volatile BIT_FIELD_TYPE gstFlags;
 
 #ifdef ADC_ENABLED
-const uint16_t cu16ADCMin = ( uint16_t )( ADC_MIN * 1023.0f / ADC_REF );
-const uint16_t cu16ADCReactivate = ( uint16_t )( ADC_REACTIVATE * 1023.0f / ADC_REF );
+const uint16_t cu16ADCMin = (uint16_t)(ADC_MIN * 1023.0f / ADC_REF);
+const uint16_t cu16ADCReactivate = (uint16_t)(ADC_REACTIVATE * 1023.0f / ADC_REF);
 #endif
 
 // #define TICK_1S_EVENT		0x04
@@ -55,9 +55,9 @@ Purpose:	Starts timer 0 with a frequency of 250,00 Hz
 static void InitTimer0( void )
 {
 	TCNT0 = 0;
-	OCR0A = 250;
-	TCCR0A = _BV( WGM01 ); 
-	TCCR0B = _BV( CS02 ); 
+	OCR0A = 63;
+	TCCR0A = _BV( WGM01 );
+	TCCR0B = _BV( CS00 ) | _BV( CS01 );
 	TIMSK0 = _BV( OCIE0A );
  }
 #endif
@@ -88,8 +88,6 @@ int main( void )
 #endif
 	
 #ifdef LCD_ENABLED
-	uint8_t u8LCDprevSize = 0;
-	
 	lcd_init();
 	
 	strcpy_P( gcaStr, PSTR( "Tick:" ) );
@@ -191,14 +189,18 @@ int main( void )
 #ifdef LCD_ENABLED
 			cli();
 			
-			lcd_printxyCRLF( 7, 1, ( unsigned char * )ULongToNumStr( gu32Ticks ) );
+			lcd_printxyCRLF(7, 1, (unsigned char*)ULongToNumStr(gu32Ticks));
 			
-			FloatToNumStr( ( ( float )ReadADC( 7 ) / 1023.0f ) * 5.0f );
-			//UIntToNumStr( ReadFastADC() );
+			uint16_t adcVal = (ReadADC(7) * 45) / 1023;
 			
-			lcd_printxy_overwrite( 6, 2, ( unsigned char * )gcaNumStr, u8LCDprevSize );
+			UIntToNumStr(adcVal / 10);
+			lcd_printxy(6, 2, (unsigned char*)gcaNumStr);
 			
-			u8LCDprevSize = strlen( gcaNumStr );
+			strcpy_P(gcaStr, PSTR("."));
+			lcd_printxy(7, 2, (unsigned char*)gcaStr);
+			
+			UIntToNumStr(adcVal % 10);
+			lcd_printxy(8, 2, (unsigned char*)gcaNumStr);
 			
 			sei();
 #endif

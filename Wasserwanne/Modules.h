@@ -42,7 +42,6 @@
 
 
 #ifdef LCD_ENABLED
-
 #ifndef I2C_ENABLED
 #define I2C_ENABLED
 #endif
